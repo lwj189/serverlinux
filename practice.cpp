@@ -1,0 +1,51 @@
+#include <iostream>
+#include <cstring>
+#include <string>
+#include <cstdlib>
+#include <csignal>
+#include <unistd.h>
+
+#define PORT 8888  // 服务器监听的端口
+
+int main()
+{
+    signal(SIGPIPE, SIG_IGN);
+
+    int server_fd, new_socket;
+    struct sockaddr_in address;
+    int opt = 1;
+    socklen_t addrlen = sizeof(address);
+
+    std::string body = "<html><body><h1>Hello, Socket Server!</h1><p>Day 2 Milestone Achieved!</p></body></html>";
+    std::string http_response =
+        "HTTP/1.1 200 OK\r\n"
+        "Content-Type: text/html\r\n"
+        "Content-Length: " + std::to_string(body.size()) + "\r\n"
+        "Connection: close\r\n"
+        "\r\n" +
+        body;
+
+if((server_fd=socket(AF_INET,SOCK_STREAM,0))<0){
+    perror("socket failed");
+    exit(EXIT_FAILURE);
+}
+if((setsockopt(server_fd,SOL_SOCKET,SO_REUSEADDR,&opt,sizeof(opt)))<0){
+    perror("setsockopt");
+    exit(EXIT_FAILURE);
+}
+if(bind(server_fd,(struct sockaddr*)&address,sizeof(address))<0){
+    perror("bind failed");
+    exit(EXIT_FAILURE);
+}
+if(listen(server_fd,3)<0){
+    perror("listen");
+    exit(EXIT_FAILURE);
+}
+while(true){
+    if((new_socket=accept(server_fd,(struct sockaddr*)&address,&addrlen))<0){
+        perror("accept");
+        exit(EXIT_FAILURE);
+    }
+    send(new_socket,http_response.c_str(),http_response.size(),0);
+    close(new_socket);
+}

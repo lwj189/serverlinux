@@ -49,3 +49,27 @@ while(true){
     send(new_socket,http_response.c_str(),http_response.size(),0);
     close(new_socket);
 }
+cilent=accept(server);
+buffer="";
+while(true)
+{
+    buffer+=read(cilent);
+    if(buffer.find("\r\n\r\n")!=-1)
+    {
+        break;
+    }
+}
+method=getMethod(buffer);
+clen=getContentLength(buffer);
+if(clen>0)
+{
+    body="";
+    while(body.size()<clen)
+    {
+        body+=read(cilent);
+    }
+}
+if(method=="GET")
+{
+    send(cilent,http_response.c_str(),http_response.size(),0);
+}
